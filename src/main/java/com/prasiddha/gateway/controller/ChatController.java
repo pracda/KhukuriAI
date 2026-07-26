@@ -552,6 +552,15 @@ public class ChatController {
                     .toBuilder().costUsd(costUsd).build());
 
                 try {
+                    // F3b/UX: opt-in trailing metadata so the caller can show which model
+                    // actually served and what the turn cost. Off by default (see ChatRequest).
+                    if (request.isIncludeMeta()) {
+                        String meta = String.format(
+                            "[META:{\"model\":\"%s\",\"provider\":\"%s\",\"promptTokens\":%d,"
+                                + "\"completionTokens\":%d,\"costUsd\":%.6f}]",
+                            model, servedKey, promptTokens, completionTokens, costUsd);
+                        emitter.send(SseEmitter.event().data(meta));
+                    }
                     emitter.send(SseEmitter.event().data("[DONE]"));
                 } catch (IOException | IllegalStateException ignored) {
                 }

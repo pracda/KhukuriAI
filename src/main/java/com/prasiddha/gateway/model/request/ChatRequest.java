@@ -39,6 +39,13 @@ public class ChatRequest {
 
     private List<HistoryEntry> history;
 
+    /**
+     * Opt-in: when true, {@code /chat/stream} emits a trailing {@code [META:{...}]} frame
+     * (resolved model, provider, token counts, costUsd) just before {@code [DONE]}. Off by
+     * default so existing streaming clients that render raw {@code data:} frames are unaffected.
+     */
+    private boolean includeMeta;
+
     /** Canonical lower-case provider key used for registry lookup, pricing, and audit. */
     public String providerKey() {
         return provider == null ? null : provider.trim().toLowerCase();

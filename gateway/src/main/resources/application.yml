@@ -293,3 +293,11 @@ logging:
   level:
     ai.khukuri.gateway: INFO
     org.springframework.security: WARN
+
+# Federation with Khukuri Identity (ADR-008, phase A) — OFF until an Identity
+# instance runs next to this gateway. Enable with IDENTITY_FEDERATION_ENABLED=true.
+identity:
+  federation:
+    enabled: ${IDENTITY_FEDERATION_ENABLED:false}
+    issuer: ${IDENTITY_ISSUER:http://localhost:8181}
+    jwks-uri: ${IDENTITY_JWKS_URI:}

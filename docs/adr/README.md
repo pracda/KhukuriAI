@@ -11,3 +11,4 @@ Every contentious or hard-to-reverse choice gets an ADR at the time it is made. 
 | [005](ADR-005-java-core-python-ai.md) | Java core services, Python AI services | Accepted |
 | [006](ADR-006-spring-authorization-server.md) | Spring Authorization Server over Keycloak | Accepted |
 | [007](ADR-007-approval-gate-protocol.md) | Approval-gate protocol for mutating agent tools | Accepted |
+| [008](ADR-008-gateway-identity-federation.md) | Gateway ⇄ Identity federation via strangler pattern | Accepted |

@@ -26,6 +26,10 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final IdentityTokenVerifier identityTokenVerifier;
+
+    /** Marks principals authenticated via a federated Identity token rather than a local JWT. */
+    public static final String FEDERATED_AUTHORITY = "FEDERATED_IDENTITY";
 
     @Override
     protected void doFilterInternal(
@@ -51,6 +55,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             log.debug("Authenticated: user='{}' role='{}'", username, role);
+        } else if (StringUtils.hasText(token) && identityTokenVerifier.enabled()) {
+            // Not a local token — maybe a platform (Identity-issued) one. See ADR-008.
+            identityTokenVerifier.verify(token).ifPresent(user -> {
+                var auth = new UsernamePasswordAuthenticationToken(
+                    user.username(), null,
+                    List.of(
+                        new SimpleGrantedAuthority("ROLE_" + user.role()),
+                        new SimpleGrantedAuthority(FEDERATED_AUTHORITY)
+                    )
+                );
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+                log.debug("Authenticated via Identity federation: user='{}' role='{}' grants={}",
+                    user.username(), user.role(), user.grants());
+            });
         }
 
         chain.doFilter(req, res);

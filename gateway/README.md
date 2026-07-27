@@ -11,7 +11,8 @@ The platform's **only door to LLM providers** — a multi-tenant API gateway tha
 > - [x] Rebrand packages and Maven coordinates (`ai.khukuri:khukuri-gateway`)
 > - [ ] Point the AWS deploy at this repo — `deploy/aws/` still clones the old repo and tags instances `Project=llm-api-gateway`; identifiers deliberately untouched until the deploy-source cutover so the running prod instance stays manageable
 > - [ ] Write `contracts/openapi/gateway.yaml` to match deployed behavior
-> - [ ] Swap standalone JWT auth for Identity-issued tokens (Phase 1, once `services/identity` exists; per-tenant API keys stay)
+> - [x] Accept Identity-issued tokens (federation phase A, [ADR-008](../docs/adr/ADR-008-gateway-identity-federation.md)) — behind `IDENTITY_FEDERATION_ENABLED`, off in prod until Identity deploys alongside
+> - [ ] Platform `khk_gw_*` keys on `/chat` via shadow-key sync (ADR-008 phase B), then retire gateway-local registration (phase C)
 > - [ ] Remove desktop client's direct provider calls (khukuri-desktop repo)
 
 Instead of calling LLM APIs directly, client apps call this gateway with an issued API key. It handles authentication, rate limiting, prompt-injection and PII defense, threat detection with automatic lockout, per-request intent classification, and full audit logging — then hands back the model's response (or blocks it, with a reason).

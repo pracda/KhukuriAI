@@ -11,10 +11,10 @@
     <relativePath/>
   </parent>
 
-  <groupId>com.prasiddha</groupId>
-  <artifactId>llm-api-gateway</artifactId>
+  <groupId>ai.khukuri</groupId>
+  <artifactId>khukuri-gateway</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <name>llm-api-gateway</name>
+  <name>khukuri-gateway</name>
   <description>
     Secure LLM API Gateway — proxies OpenAI and Anthropic with
     JWT auth, rate limiting, prompt injection detection,

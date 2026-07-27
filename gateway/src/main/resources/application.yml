@@ -261,7 +261,7 @@ springdoc:
 # ── Logging ───────────────────────────────────────────────────────────────
 logging:
   level:
-    com.prasiddha.gateway: DEBUG
+    ai.khukuri.gateway: DEBUG
     org.springframework.security: INFO
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{30} - %msg%n"
@@ -291,5 +291,5 @@ spring:
 
 logging:
   level:
-    com.prasiddha.gateway: INFO
+    ai.khukuri.gateway: INFO
     org.springframework.security: WARN

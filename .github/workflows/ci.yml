@@ -31,5 +31,27 @@ jobs:
           args: --offline --no-progress './**/*.md'
           fail: true
 
-  # Placeholder matrix — real build/test jobs join per module as code lands:
-  #   gateway (Gradle), services/* (Gradle), ai/agent-runtime (uv + pytest)
+  gateway:
+    name: Gateway — build & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - name: Build and test
+        run: mvn --batch-mode verify
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateway-test-reports
+          path: gateway/target/surefire-reports
+
+  # Further jobs join per module as code lands:
+  #   services/* (Gradle), ai/agent-runtime (uv + pytest)

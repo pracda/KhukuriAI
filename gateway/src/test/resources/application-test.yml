@@ -110,4 +110,4 @@ app:
 
 logging:
   level:
-    com.prasiddha.gateway: DEBUG
+    ai.khukuri.gateway: DEBUG

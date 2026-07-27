@@ -1,11 +1,18 @@
-# Secure LLM API Gateway
+# Khukuri Gateway
 
-[![CI / CD](https://github.com/pracda/llm-api-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/pracda/llm-api-gateway/actions/workflows/ci.yml)
+[![CI](https://github.com/pracda/KhukuriAI/actions/workflows/ci.yml/badge.svg)](https://github.com/pracda/KhukuriAI/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen)
 
+The platform's **only door to LLM providers** — a multi-tenant API gateway that sits in front of **OpenAI** and **Anthropic**, giving every client that calls an LLM through it centralized security, abuse detection, and usage visibility — without any of them touching a provider key directly.
 
-A multi-tenant API gateway that sits in front of **OpenAI** and **Anthropic**, giving every team that calls an LLM through it centralized security, abuse detection, and usage visibility — without any of them touching a provider key directly.
+> **Migration status:** imported from [`pracda/llm-api-gateway`](https://github.com/pracda/llm-api-gateway) with full history (33 commits), packages rebranded to `ai.khukuri.gateway`. This is now the canonical source. Remaining cutover work:
+> - [x] Import with history (secrets-scanned before entering this public repo)
+> - [x] Rebrand packages and Maven coordinates (`ai.khukuri:khukuri-gateway`)
+> - [ ] Point the AWS deploy at this repo — `deploy/aws/` still clones the old repo and tags instances `Project=llm-api-gateway`; identifiers deliberately untouched until the deploy-source cutover so the running prod instance stays manageable
+> - [ ] Write `contracts/openapi/gateway.yaml` to match deployed behavior
+> - [ ] Swap standalone JWT auth for Identity-issued tokens (Phase 1, once `services/identity` exists; per-tenant API keys stay)
+> - [ ] Remove desktop client's direct provider calls (khukuri-desktop repo)
 
 Instead of calling LLM APIs directly, client apps call this gateway with an issued API key. It handles authentication, rate limiting, prompt-injection and PII defense, threat detection with automatic lockout, per-request intent classification, and full audit logging — then hands back the model's response (or blocks it, with a reason).
 
@@ -110,8 +117,8 @@ The budget check can only see the running spend *prior* to this call — the exa
 
 ### 1. Clone and configure
 ```bash
-git clone https://github.com/pracda/llm-api-gateway.git
-cd llm-api-gateway
+git clone https://github.com/pracda/KhukuriAI.git
+cd KhukuriAI/gateway
 cp .env.example .env
 # Edit .env and add your API keys, and a real JWT_SECRET (32+ chars)
 ```

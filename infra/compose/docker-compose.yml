@@ -74,6 +74,22 @@ services:
     volumes:
       - kafkadata:/var/lib/kafka/data
 
+  identity:
+    build: ../../services/identity
+    profiles: ["apps"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/khukuri
+      SPRING_DATASOURCE_USERNAME: khukuri
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      IDENTITY_ADMIN_PASSWORD: ${IDENTITY_ADMIN_PASSWORD:?set in .env}
+      IDENTITY_CLIENT_GATEWAY_SECRET: ${IDENTITY_CLIENT_GATEWAY_SECRET:?set in .env}
+      IDENTITY_ISSUER: http://localhost:8181
+    ports:
+      - "8181:8181"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.109.0
     command: ["--config=/etc/otelcol/config.yaml"]

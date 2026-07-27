@@ -1,0 +1,38 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: khukuri-identity
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5442/khukuri}
+    username: ${SPRING_DATASOURCE_USERNAME:khukuri}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: identity
+  flyway:
+    default-schema: identity
+
+identity:
+  issuer: ${IDENTITY_ISSUER:http://localhost:8181}
+  admin-password: ${IDENTITY_ADMIN_PASSWORD:admin123}
+  desktop-redirect-uris:
+    - http://127.0.0.1:53682/callback
+    - khukuri://oauth/callback
+  clients:
+    gateway-secret: ${IDENTITY_CLIENT_GATEWAY_SECRET:local-dev-gateway-secret}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    ai.khukuri.identity: INFO

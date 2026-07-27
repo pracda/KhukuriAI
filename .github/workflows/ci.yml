@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate repo structure & configs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate docker-compose
+        working-directory: infra/compose
+        run: |
+          cp .env.example .env
+          docker compose config -q
+
+      - name: Validate event schemas are valid JSON Schema
+        run: |
+          pip install --quiet check-jsonschema
+          for f in contracts/events/*.schema.json; do
+            check-jsonschema --check-metaschema "$f"
+          done
+
+      - name: Check markdown links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --offline --no-progress './**/*.md'
+          fail: true
+
+  # Placeholder matrix — real build/test jobs join per module as code lands:
+  #   gateway (Gradle), services/* (Gradle), ai/agent-runtime (uv + pytest)

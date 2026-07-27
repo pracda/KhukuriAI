@@ -1,0 +1,48 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.iml
+
+# --- Java / Gradle / Maven ---
+target/
+build/
+.gradle/
+out/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+
+# --- Node (tooling only; desktop lives in its own repo) ---
+node_modules/
+
+# --- Env & secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!example.tfvars
+.terraform.lock.hcl
+
+# --- Logs / temp ---
+*.log
+tmp/

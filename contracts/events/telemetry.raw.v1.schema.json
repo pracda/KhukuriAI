@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://khukuri.ai/contracts/events/telemetry.raw.v1.schema.json",
+  "title": "telemetry.raw v1",
+  "description": "Envelope for one OTLP batch on the telemetry.raw topic. Payload stays OTLP-native; the envelope adds tenancy and provenance.",
+  "type": "object",
+  "required": ["envelope_version", "tenant_id", "signal", "received_at", "ingest_key_id", "payload"],
+  "properties": {
+    "envelope_version": { "const": 1 },
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant slug, e.g. retail-shop | ember | khukuri",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"
+    },
+    "signal": { "enum": ["logs", "metrics", "traces"] },
+    "received_at": { "type": "string", "format": "date-time" },
+    "ingest_key_id": {
+      "type": "string",
+      "description": "Identifier (not the secret) of the ingest key that authenticated this batch"
+    },
+    "payload": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "description": "The raw OTLP protobuf batch, base64-encoded"
+    }
+  },
+  "additionalProperties": false
+}

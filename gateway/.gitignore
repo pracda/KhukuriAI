@@ -1,0 +1,33 @@
+# ── Secrets — NEVER commit these ─────────────────────────────────────────
+.env
+*.env
+*.env.local
+
+# ── Maven build output ────────────────────────────────────────────────────
+target/
+*.jar
+*.war
+*.class
+
+# ── IDE ───────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+.vscode/
+*.swp
+
+# ── OS ────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+*.zip
+
+# ── AWS deploy state/secrets — generated at deploy time, never commit ─────
+# (.deployment-secrets.env already caught by *.env above)
+deploy/aws/.deployment-state.json
+deploy/aws/.rendered-user-data.sh
+deploy/aws/*.pem

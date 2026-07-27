@@ -1,0 +1,89 @@
+#!/bin/bash
+# EC2 first-boot bootstrap for the LLM Gateway - plain single-instance
+# deployment (no Elastic Beanstalk/ASG/ELB). Installs Docker, clones the
+# repo, writes a production .env, and runs the existing docker-compose.yml
+# stack (app + Postgres + Redis together on one box).
+set -e
+exec > /var/log/llm-gateway-bootstrap.log 2>&1
+
+dnf update -y
+dnf install -y docker git
+systemctl enable docker
+systemctl start docker
+
+# Amazon Linux 2023's docker package doesn't ship a compose-v2/buildx plugin
+# recent enough for `docker compose build` - install both manually as CLI plugins.
+mkdir -p /usr/libexec/docker/cli-plugins
+# -f: fail loudly (non-zero exit, tripping `set -e`) on a 4xx/5xx response instead of
+# silently writing the error page's HTML as if it were the binary - bit us once already
+# with the buildx download below returning an empty URL that curl "succeeded" on.
+curl -sfL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+    -o /usr/libexec/docker/cli-plugins/docker-compose
+chmod +x /usr/libexec/docker/cli-plugins/docker-compose
+
+# Pinned version + direct download URL - deliberately NOT scraping the GitHub
+# API for "latest" here. That approach (grep/cut over the releases API JSON)
+# broke a real deployment: buildx's actual binary asset name contains dots
+# too (e.g. buildx-v0.24.0.linux-amd64), so a "grep -v '\.'" filter meant to
+# exclude checksum/attestation sidecar files excluded the real binary as well,
+# leaving an empty URL - which curl failed on, which (via `set -e`) silently
+# killed the entire bootstrap before it ever got to cloning the repo. The
+# unauthenticated GitHub API's 60 req/hour rate limit was also a standing risk
+# for the same call. Bump BUILDX_VERSION by hand when a newer one is needed.
+BUILDX_VERSION="v0.19.3"
+curl -sfL "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64" \
+    -o /usr/libexec/docker/cli-plugins/docker-buildx
+chmod +x /usr/libexec/docker/cli-plugins/docker-buildx
+
+REPO_DIR=/opt/llm-gateway
+rm -rf "$REPO_DIR"
+git clone --depth 1 https://github.com/pracda/llm-api-gateway.git "$REPO_DIR"
+
+cat > "$REPO_DIR/.env" << 'ENVEOF'
+OPENAI_API_KEY=__OPENAI_API_KEY__
+ANTHROPIC_API_KEY=__ANTHROPIC_API_KEY__
+JWT_SECRET=__JWT_SECRET__
+POSTGRES_DB=llmgateway
+POSTGRES_USER=gateway
+POSTGRES_PASSWORD=__POSTGRES_PASSWORD__
+REDIS_PASSWORD=__REDIS_PASSWORD__
+ADMIN_PASSWORD=__ADMIN_PASSWORD__
+CANARY_TOKEN=__CANARY_TOKEN__
+# No ddl-auto override here on purpose: the "prod" Spring profile's real default
+# (ddl-auto: validate) is what should run. Flyway (spring.flyway.baseline-on-migrate)
+# creates the full schema from V1__baseline.sql forward on a fresh database - letting
+# Hibernate also auto-update the schema on top of that would fight Flyway and risk
+# exactly the kind of drift PostgresIntegrationTest exists to catch.
+ENVEOF
+
+cd "$REPO_DIR"
+# --env-file explicit: Compose does NOT reliably auto-discover ../.env when
+# invoked with -f docker/docker-compose.yml from the parent directory - see
+# the comment at the top of docker-compose.yml for the full explanation.
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build
+
+# Re-launch the stack on every instance reboot - this is a single plain EC2
+# instance (no Auto Scaling Group), so this systemd unit is what gives it
+# restart-on-reboot resilience instead.
+cat > /etc/systemd/system/llm-gateway.service << 'UNITEOF'
+[Unit]
+Description=LLM Gateway docker-compose stack
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/llm-gateway
+ExecStart=/usr/bin/docker compose --env-file .env -f docker/docker-compose.yml up -d
+ExecStop=/usr/bin/docker compose --env-file .env -f docker/docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target
+UNITEOF
+
+systemctl daemon-reload
+systemctl enable llm-gateway.service
+
+echo "Bootstrap complete at $(date)"

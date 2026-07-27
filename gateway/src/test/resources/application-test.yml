@@ -1,0 +1,113 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+
+  # Flyway migrations are Postgres-specific SQL — tests use Hibernate
+  # create-drop against H2 instead, same as before Flyway was introduced.
+  flyway:
+    enabled: false
+
+  # Disable Redis for unit tests — integration tests use Testcontainers
+  data:
+    redis:
+      host: localhost
+      port: 16379     # intentionally unreachable — mock in tests
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+app:
+  jwt:
+    secret: test-secret-key-must-be-at-least-32-characters-long-for-hs256
+    expiration-ms: 3600000
+
+  rate-limit:
+    requests-per-minute: 1000
+    requests-per-day: 100000
+    global-requests-per-minute: 10000
+    auth-requests-per-minute: 1000
+
+  security:
+    input:
+      injection-detection-enabled: true
+      block-on-detection: true
+    output:
+      sanitisation-enabled: true
+      block-on-unsafe-output: true
+      max-response-length: 10000
+
+  llm:
+    providers:
+      openai:
+        type: openai-compatible
+        base-url: https://api.openai.com
+        api-key: test-openai-key
+        default-model: gpt-4o-mini
+        allowed-models: [gpt-4o-mini, gpt-4o, gpt-4-turbo, gpt-3.5-turbo]
+        timeout-seconds: 5
+      anthropic:
+        type: anthropic
+        base-url: https://api.anthropic.com
+        api-version: "2023-06-01"
+        api-key: test-anthropic-key
+        default-model: claude-haiku-4-5-20251001
+        allowed-models: [claude-haiku-4-5-20251001, claude-sonnet-5, claude-opus-4-8]
+        timeout-seconds: 5
+    retry:
+      max-retries: 2
+      backoff-ms: 10
+      fallback-enabled: true
+    routing:
+      enabled: true
+      simple:  { provider: openai,    model: gpt-4o-mini }
+      complex: { provider: anthropic, model: claude-sonnet-5 }
+      complexity-char-threshold: 600
+      suspicious-score-threshold: 40
+      premium-tiers: [STANDARD, ENTERPRISE]
+      budget-floor-fraction: 0.15
+      profiles:
+        general:   { provider: openai,    model: gpt-4o-mini }
+        reasoning: { provider: anthropic, model: claude-opus-4-8 }
+        coding:    { provider: anthropic, model: claude-sonnet-5 }
+    pricing:
+      openai:
+        gpt-4o-mini: { input-per-million: 0.15, output-per-million: 0.60 }
+        gpt-4o: { input-per-million: 2.50, output-per-million: 10.00 }
+        gpt-4-turbo: { input-per-million: 10.00, output-per-million: 30.00 }
+        gpt-3.5-turbo: { input-per-million: 0.50, output-per-million: 1.50 }
+      anthropic:
+        claude-haiku-4-5-20251001: { input-per-million: 0.25, output-per-million: 1.25 }
+        claude-sonnet-5: { input-per-million: 3.00, output-per-million: 15.00 }
+        claude-opus-4-8: { input-per-million: 15.00, output-per-million: 75.00 }
+
+  api-keys:
+    tiers:
+      trial:
+        requests-per-day: 100
+        max-tokens-per-request: 1000
+        expiry-days: 7
+        daily-budget-usd: 1.00
+      standard:
+        requests-per-day: 2000
+        max-tokens-per-request: 4000
+        expiry-days: 90
+        daily-budget-usd: 25.00
+
+logging:
+  level:
+    com.prasiddha.gateway: DEBUG

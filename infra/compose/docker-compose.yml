@@ -134,6 +134,26 @@ services:
       identity:
         condition: service_started
 
+  agent-runtime:
+    build: ../../ai/agent-runtime
+    profiles: ["apps"]
+    environment:
+      AGENT_DATABASE_URL: postgresql+psycopg://khukuri:${POSTGRES_PASSWORD:?set in .env}@postgres:5432/khukuri
+      AGENT_GATEWAY_URL: ${AGENT_GATEWAY_URL:-http://gateway:8080}
+      AGENT_GATEWAY_API_KEY: ${AGENT_GATEWAY_API_KEY:-}
+      AGENT_INCIDENT_URL: http://incident:8183
+      AGENT_IDENTITY_URL: http://identity:8181
+      AGENT_IDENTITY_CLIENT_SECRET: ${IDENTITY_CLIENT_GATEWAY_SECRET:?set in .env}
+    ports:
+      - "8184:8184"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_started
+      incident:
+        condition: service_started
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.109.0
     command: ["--config=/etc/otelcol/config.yaml"]

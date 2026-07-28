@@ -119,5 +119,22 @@ jobs:
           name: incident-test-reports
           path: services/incident/target/surefire-reports
 
+  agent-runtime:
+    name: Agent runtime — build & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai/agent-runtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Test
+        run: pytest -q
+
   # Further jobs join per module as code lands:
-  #   services/scanhub (Maven), ai/agent-runtime (uv + pytest)
+  #   services/scanhub (Maven)

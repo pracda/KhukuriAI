@@ -51,7 +51,7 @@ Khukuri is developed against three **live tenants**, not fixtures: a retail poin
 | [services/ingest](services/ingest/) | OTLP → Kafka → ClickHouse | ✅ v0 — [details](services/ingest/README.md) |
 | [services/incident](services/incident/) | Detection, incident lifecycle, telemetry query API | ✅ v0 — [details](services/incident/README.md) |
 | [services/scanhub](services/scanhub/) | Security scan orchestration, findings | 🧱 Phase 2 |
-| [ai/agent-runtime](ai/agent-runtime/) | Agent loop, tools, approval gates | 🧱 Phase 2 |
+| [ai/agent-runtime](ai/agent-runtime/) | Agent loop, tools, approval gates | ✅ v0 — [details](ai/agent-runtime/README.md) |
 | Khukuri Desktop | Tauri + React client | separate repo, migrating |
 
 ## Quick start (data plane)

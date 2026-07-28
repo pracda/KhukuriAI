@@ -49,7 +49,7 @@ Khukuri is developed against three **live tenants**, not fixtures: a retail poin
 | [gateway](gateway/) | LLM gateway: security pipeline, budgets, multi-tenancy, audit | ✅ migrated, deployed lineage — [details](gateway/README.md) |
 | [services/identity](services/identity/) | OIDC, tenants, RBAC, per-tenant keys | ✅ v0 — [details](services/identity/README.md) |
 | [services/ingest](services/ingest/) | OTLP → Kafka → ClickHouse | ✅ v0 — [details](services/ingest/README.md) |
-| [services/incident](services/incident/) | Detection, incident lifecycle, telemetry query API | 🧱 Phase 2 |
+| [services/incident](services/incident/) | Detection, incident lifecycle, telemetry query API | ✅ v0 — [details](services/incident/README.md) |
 | [services/scanhub](services/scanhub/) | Security scan orchestration, findings | 🧱 Phase 2 |
 | [ai/agent-runtime](ai/agent-runtime/) | Agent loop, tools, approval gates | 🧱 Phase 2 |
 | Khukuri Desktop | Tauri + React client | separate repo, migrating |

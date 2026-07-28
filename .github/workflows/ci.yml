@@ -97,5 +97,27 @@ jobs:
           name: ingest-test-reports
           path: services/ingest/target/surefire-reports
 
+  incident:
+    name: Incident — build & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/incident
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Build and test
+        run: mvn --batch-mode verify
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: incident-test-reports
+          path: services/incident/target/surefire-reports
+
   # Further jobs join per module as code lands:
-  #   services/incident, services/scanhub (Maven), ai/agent-runtime (uv + pytest)
+  #   services/scanhub (Maven), ai/agent-runtime (uv + pytest)

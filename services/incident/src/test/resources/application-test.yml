@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:incident;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        default_schema: ""
+  flyway:
+    # H2 cannot honour the Postgres partial unique index in V1, so the schema comes
+    # from Hibernate here. The dedup rule itself is covered by unit tests against the
+    # service, and by the live run against real Postgres.
+    enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+clickhouse:
+  datasource:
+    url: jdbc:ch://localhost:8143/khukuri
+    username: khukuri
+    password: ""
+
+incident:
+  detection:
+    enabled: false       # tests drive the detector explicitly
+    interval: PT1H
+    window: 5m
+    tenants: []
+    error-rate:
+      enabled: true
+      threshold: 0.05
+      min-events: 10
+    latency:
+      enabled: true
+      p95-threshold-ms: 2000
+      min-spans: 10
+    saturation:
+      - metric: db.pool.active
+        threshold: 9
+        description: "Connection pool is at or near its ceiling."
+  kafka:
+    topic: incidents.events

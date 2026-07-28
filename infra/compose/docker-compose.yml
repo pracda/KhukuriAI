@@ -110,6 +110,30 @@ services:
       identity:
         condition: service_started
 
+  incident:
+    build: ../../services/incident
+    profiles: ["apps"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/khukuri
+      SPRING_DATASOURCE_USERNAME: khukuri
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      CLICKHOUSE_URL: jdbc:ch://clickhouse:8123/khukuri
+      CLICKHOUSE_USER: khukuri
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?set in .env}
+      KAFKA_BOOTSTRAP: kafka:9092
+      IDENTITY_ISSUER: http://identity:8181
+    ports:
+      - "8183:8183"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      identity:
+        condition: service_started
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.109.0
     command: ["--config=/etc/otelcol/config.yaml"]

@@ -1,0 +1,69 @@
+server:
+  port: 8183
+
+spring:
+  application:
+    name: khukuri-incident
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5442/khukuri}
+    username: ${SPRING_DATASOURCE_USERNAME:khukuri}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: incident
+  flyway:
+    default-schema: incident
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:19092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Tokens are Identity-issued; keys are fetched from its JWKS.
+          issuer-uri: ${IDENTITY_ISSUER:http://localhost:8181}
+
+clickhouse:
+  datasource:
+    url: ${CLICKHOUSE_URL:jdbc:ch://localhost:8143/khukuri}
+    username: ${CLICKHOUSE_USER:khukuri}
+    password: ${CLICKHOUSE_PASSWORD:}
+    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+
+incident:
+  detection:
+    enabled: ${DETECTION_ENABLED:true}
+    interval: ${DETECTION_INTERVAL:PT30S}
+    window: ${DETECTION_WINDOW:5m}
+    # Empty = sweep whichever tenants are actually shipping telemetry.
+    tenants: []
+    error-rate:
+      enabled: true
+      threshold: 0.05      # 5% of log records are errors
+      min-events: 10       # ignore tiny samples, where one error is 50%
+    latency:
+      enabled: true
+      p95-threshold-ms: 2000
+      min-spans: 10
+    saturation:
+      - metric: db.pool.active
+        threshold: 9
+        description: "Connection pool is at or near its ceiling."
+  kafka:
+    topic: ${INCIDENTS_TOPIC:incidents.events}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    ai.khukuri.incident: INFO

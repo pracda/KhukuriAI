@@ -1,7 +1,11 @@
 # Local OTel Collector configuration.
-# Phase 2: the debug exporter is replaced by an OTLP exporter pointed at
-# the Ingest service (per-tenant ingest key in headers). Until then this
-# proves the receive path and prints what arrives.
+#
+# Forwards everything it receives to the Ingest service, authenticated with a
+# per-tenant ingest key. Set KHUKURI_INGEST_KEY in .env to a key issued by
+# Identity (POST /api/v1/tenants/<slug>/keys with type INGEST).
+#
+# encoding: json is required — the ingest service accepts OTLP/JSON and rejects
+# protobuf with 415. See services/ingest/README.md.
 
 receivers:
   otlp:
@@ -20,20 +24,25 @@ processors:
     spike_limit_mib: 64
 
 exporters:
+  otlphttp/khukuri:
+    endpoint: ${env:KHUKURI_INGEST_ENDPOINT}
+    encoding: json
+    headers:
+      X-Khukuri-Ingest-Key: ${env:KHUKURI_INGEST_KEY}
   debug:
-    verbosity: normal
+    verbosity: basic
 
 service:
   pipelines:
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug]
+      exporters: [otlphttp/khukuri]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug]
+      exporters: [otlphttp/khukuri]
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [debug]
+      exporters: [otlphttp/khukuri]

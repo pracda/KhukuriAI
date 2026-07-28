@@ -1,0 +1,20 @@
+spring:
+  autoconfigure:
+    # Tests exercise the receive path and the parser; ClickHouse and Kafka are
+    # collaborators to be stubbed, not started. No Docker required.
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+ingest:
+  identity:
+    url: http://identity.test
+    client-id: khukuri-gateway
+    client-secret: test-secret
+    cache-ttl: 60s
+  kafka:
+    topic: telemetry.raw
+  clickhouse:
+    batch-size: 100
+    flush-interval: 1s

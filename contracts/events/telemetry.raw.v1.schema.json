@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://khukuri.ai/contracts/events/telemetry.raw.v1.schema.json",
   "title": "telemetry.raw v1",
-  "description": "Envelope for one OTLP batch on the telemetry.raw topic. Payload stays OTLP-native; the envelope adds tenancy and provenance.",
+  "description": "Envelope for one OTLP batch on the telemetry.raw topic. The payload stays OTLP-native and opaque to the bus; the envelope adds tenancy and provenance. tenant_id is stamped by the ingest service from the authenticated key and is never read from the payload.",
   "type": "object",
-  "required": ["envelope_version", "tenant_id", "signal", "received_at", "ingest_key_id", "payload"],
+  "required": ["envelope_version", "tenant_id", "signal", "encoding", "received_at", "ingest_key_id", "payload"],
   "properties": {
     "envelope_version": { "const": 1 },
     "tenant_id": {
@@ -13,6 +13,10 @@
       "pattern": "^[a-z0-9][a-z0-9-]{1,62}$"
     },
     "signal": { "enum": ["logs", "metrics", "traces"] },
+    "encoding": {
+      "enum": ["json", "protobuf"],
+      "description": "Wire encoding of the OTLP payload. The ingest service accepts 'json' today; 'protobuf' is reserved and currently rejected at the receiver with 415."
+    },
     "received_at": { "type": "string", "format": "date-time" },
     "ingest_key_id": {
       "type": "string",
@@ -21,7 +25,7 @@
     "payload": {
       "type": "string",
       "contentEncoding": "base64",
-      "description": "The raw OTLP protobuf batch, base64-encoded"
+      "description": "The raw OTLP request body, base64-encoded, in the encoding named above"
     }
   },
   "additionalProperties": false

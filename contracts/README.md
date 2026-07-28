@@ -7,6 +7,6 @@ Cross-service contracts are written here **before** implementation. Services may
 
 Rules:
 
-1. Breaking a contract requires a new version file, not an edit.
+1. Breaking a contract requires a new version file, not an edit. *(Exception, applied once: `telemetry.raw.v1` was amended in place on 2026-07-27 — adding the `encoding` field — while it was still an unimplemented placeholder with zero producers or consumers. The rule protects real consumers; there were none. Every amendment after an implementation exists gets a new version file.)*
 2. CI validates schemas; services will validate against these files in contract tests.
 3. If code and contract disagree, the contract is wrong *only* when the deployed gateway is the code in question (it predates this repo) — fix the contract to match reality, then evolve both together.

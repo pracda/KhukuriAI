@@ -1,0 +1,52 @@
+server:
+  port: 8182
+
+spring:
+  application:
+    name: khukuri-ingest
+  # Single datasource: ClickHouse. Ingest owns no relational state.
+  datasource:
+    url: ${CLICKHOUSE_URL:jdbc:ch://localhost:8143/khukuri}
+    username: ${CLICKHOUSE_USER:khukuri}
+    password: ${CLICKHOUSE_PASSWORD:}
+    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:19092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      group-id: khukuri-ingest-writer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Offsets commit after the ClickHouse write, giving at-least-once delivery.
+      enable-auto-commit: false
+      max-poll-records: 500
+    listener:
+      type: batch
+      ack-mode: batch
+
+ingest:
+  identity:
+    url: ${IDENTITY_URL:http://localhost:8181}
+    client-id: ${IDENTITY_CLIENT_ID:khukuri-gateway}
+    client-secret: ${IDENTITY_CLIENT_SECRET:local-dev-gateway-secret}
+    # Revocation takes effect within this window — see README.
+    cache-ttl: ${INGEST_KEY_CACHE_TTL:60s}
+  kafka:
+    topic: ${INGEST_TOPIC:telemetry.raw}
+  clickhouse:
+    batch-size: 500
+    flush-interval: 5s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    ai.khukuri.ingest: INFO

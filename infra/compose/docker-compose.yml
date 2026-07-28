@@ -90,6 +90,26 @@ services:
       postgres:
         condition: service_healthy
 
+  ingest:
+    build: ../../services/ingest
+    profiles: ["apps"]
+    environment:
+      CLICKHOUSE_URL: jdbc:ch://clickhouse:8123/khukuri
+      CLICKHOUSE_USER: khukuri
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?set in .env}
+      KAFKA_BOOTSTRAP: kafka:9092
+      IDENTITY_URL: http://identity:8181
+      IDENTITY_CLIENT_SECRET: ${IDENTITY_CLIENT_GATEWAY_SECRET:?set in .env}
+    ports:
+      - "8182:8182"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      identity:
+        condition: service_started
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.109.0
     command: ["--config=/etc/otelcol/config.yaml"]

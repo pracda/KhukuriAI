@@ -71,6 +71,7 @@ Requesting another tenant returns **403, not an empty list** — a caller asking
 - Detection state is recomputed from scratch each pass; there is no flap damping, so a metric oscillating around its threshold will open/resolve repeatedly.
 - Deployments are recorded explicitly by CI/CD. Deriving them from a changed `service.version` resource attribute is possible but cannot see a deploy that never emitted telemetry.
 - Thresholds are global, not per-service; a batch job with a naturally high error rate needs its own tuning.
+- **Saturation rules do not filter by metric attributes.** A metric split across attribute values — `db.client.connections.usage` carries `state=used|idle` — is aggregated with `argMax` across all of them, so the rule would compare an arbitrary series. The configured rules therefore use metrics that are unambiguous on their own (`pending_requests`, `wait_time`). Attribute-aware rule predicates are the fix.
 
 ## Run
 

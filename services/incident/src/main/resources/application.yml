@@ -52,9 +52,16 @@ incident:
       p95-threshold-ms: 2000
       min-spans: 10
     saturation:
-      - metric: db.pool.active
-        threshold: 9
-        description: "Connection pool is at or near its ceiling."
+      # Real OpenTelemetry semantic-convention metric names, as emitted by the Java
+      # agent instrumenting HikariCP. pending_requests is the sharpest pool signal:
+      # a sustained non-zero value means threads are blocked waiting for a connection,
+      # which is pool exhaustion by definition and needs no attribute filtering.
+      - metric: db.client.connections.pending_requests
+        threshold: 1
+        description: "Threads are queuing for a database connection — the pool is exhausted."
+      - metric: db.client.connections.wait_time
+        threshold: 1000
+        description: "Callers are waiting over a second to obtain a database connection."
   kafka:
     topic: ${INCIDENTS_TOPIC:incidents.events}
 

@@ -159,11 +159,17 @@ services:
     command: ["--config=/etc/otelcol/config.yaml"]
     volumes:
       - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    environment:
+      # The collector reads these at runtime; .env interpolation alone only fills the
+      # compose file, not the container's own environment.
+      KHUKURI_INGEST_ENDPOINT: ${KHUKURI_INGEST_ENDPOINT:-http://ingest:8182}
+      KHUKURI_INGEST_KEY: ${KHUKURI_INGEST_KEY:?issue an INGEST key from Identity and set it in .env}
+    extra_hosts:
+      # Lets the collector reach a service running on the host during development.
+      - "host.docker.internal:host-gateway"
     ports:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
-    depends_on:
-      - kafka
 
 volumes:
   pgdata:

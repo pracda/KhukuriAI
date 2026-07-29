@@ -59,9 +59,10 @@ incident:
       - metric: db.client.connections.pending_requests
         threshold: 1
         description: "Threads are queuing for a database connection — the pool is exhausted."
-      - metric: db.client.connections.wait_time
-        threshold: 1000
-        description: "Callers are waiting over a second to obtain a database connection."
+      # NOTE: only GAUGE metrics belong here. db.client.connections.wait_time and
+      # .use_time are cumulative counters — they only ever grow, so an absolute
+      # threshold fires once and then forever. Alerting on those needs rate-of-change,
+      # which this rule engine does not compute yet.
   kafka:
     topic: ${INCIDENTS_TOPIC:incidents.events}
 

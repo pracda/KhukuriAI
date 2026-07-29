@@ -71,6 +71,8 @@ Requesting another tenant returns **403, not an empty list** — a caller asking
 - Detection state is recomputed from scratch each pass; there is no flap damping, so a metric oscillating around its threshold will open/resolve repeatedly.
 - Deployments are recorded explicitly by CI/CD. Deriving them from a changed `service.version` resource attribute is possible but cannot see a deploy that never emitted telemetry.
 - Thresholds are global, not per-service; a batch job with a naturally high error rate needs its own tuning.
+- **Saturation reads the *latest* sample, so short spikes are missed.** `latestMetricByService` uses `argMax(value, timestamp)`. A pool that queued 43 threads during a burst and recovered before the next detector pass reads as `0` and never opens an incident — observed live. For saturation, `max()` over the window is the correct aggregate: a pool that hit its ceiling at any point in the window is worth knowing about even if it recovered. This is the top fix.
+- **Saturation rules compare absolute values, so only gauges belong in them.** A cumulative counter (`db.client.connections.wait_time`, `.use_time`) only ever grows, so a fixed threshold fires once and then permanently — this bit us live, opening an incident on a counter at 1.4 million. Rate-of-change rules are the fix; until then, configure gauges only.
 - **Saturation rules do not filter by metric attributes.** A metric split across attribute values — `db.client.connections.usage` carries `state=used|idle` — is aggregated with `argMax` across all of them, so the rule would compare an arbitrary series. The configured rules therefore use metrics that are unambiguous on their own (`pending_requests`, `wait_time`). Attribute-aware rule predicates are the fix.
 
 ## Run
